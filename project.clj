@@ -1,6 +1,6 @@
 (def libgdx-version "1.12.1")
 
-(defproject clojure.ctx "-SNAPSHOT"
+(defproject full-moon "-SNAPSHOT"
   :repositories [["jitpack" "https://jitpack.io"]]
   :dependencies [[org.clojure/clojure "1.12.0"]
                  [com.badlogicgames.gdx/gdx                   ~libgdx-version]
