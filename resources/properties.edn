@@ -1,21 +1,5 @@
 ({:app/context
-  {:context/assets
-   {:folder "resources/",
-    :image-file-extensions #{"png" "bmp"},
-    :sound-file-extensions #{"wav"}},
-   :context/config
-   {:configs
-    {:dev
-     {:debug-options? true,
-      :debug-window? true,
-      :map-editor? true,
-      :property-editor? true},
-     :prod
-     {:debug-options? false,
-      :debug-window? false,
-      :map-editor? false,
-      :property-editor? false}},
-    :tag :dev},
+  {:context/assets "resources/"
    :context/graphics
    {:cursors
     {:cursors/bag ["bag001" [0 0]],
@@ -46,7 +30,6 @@
     :screens/options-menu
     :screens/property-editor
     :screens/world],
-   :context/tiled-map-renderer true,
    :context/vis-ui :skin-scale/x1},
   :app/lwjgl3
   {:fps 60,

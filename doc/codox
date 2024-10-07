@@ -1,0 +1,2 @@
+set -ex
+ADD_METADOC=true lein codox

@@ -36,7 +36,7 @@
                      & {:keys [transition?
                                transition-neighbor?]}]
   (let [idxvalue (if transition?
-                   (transition-idx-value unscaled-position transition-neighbor?)
+                   (t/transition-idx-value unscaled-position transition-neighbor?)
                    floor-idxvalue)
         tiled-map-positions (module-index->tiled-map-positions
                              (if transition?
@@ -59,9 +59,9 @@
                      unscaled-grid
                      unscaled-floor-positions
                      unscaled-transition-positions]
-  (let [_ (assert (and (= (width modules-tiled-map)
+  (let [_ (assert (and (= (t/width modules-tiled-map)
                           (* number-modules-x (+ module-width module-offset-tiles)))
-                       (= (height modules-tiled-map)
+                       (= (t/height modules-tiled-map)
                           (* number-modules-y (+ module-height module-offset-tiles)))))
         scaled-grid (reduce (fn [scaled-grid unscaled-position]
                               (place-module scaled-grid unscaled-position :transition? false))
@@ -73,6 +73,4 @@
                                                                     (get unscaled-grid %))))
                             scaled-grid
                             unscaled-transition-positions)]
-    (grid->tiled-map modules-tiled-map scaled-grid)))
-
-
+    (t/grid->tiled-map modules-tiled-map scaled-grid)))

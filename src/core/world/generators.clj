@@ -4,8 +4,8 @@
 ; TODO can use different turn-ratio/depth/etc. params
 ; (printgrid (:grid (->cave-grid :size 800)))
 (defn- ->cave-grid [& {:keys [size]}]
-  (let [{:keys [start grid]} (cave-gridgen (java.util.Random.) size size :wide)
-        grid (fix-not-allowed-diagonals grid)]
+  (let [{:keys [start grid]} (t/cave-gridgen (java.util.Random.) size size :wide)
+        grid (t/fix-not-allowed-diagonals grid)]
     (assert (= #{:wall :ground} (set (g/cells grid))))
     {:start start
      :grid grid}))
@@ -40,11 +40,11 @@
                       (mapcat g/get-8-neighbour-positions
                               next-positions)))
              (concat filled next-positions)
-             (assoc-ks grid next-positions nil))
+             (t/assoc-ks grid next-positions nil))
       filled)))
 
 (comment
- (let [{:keys [start grid]} (->cave-grid :size 15)
+ (let [{:keys [start grid]} (t/->cave-grid :size 15)
        _ (println "BASE GRID:\n")
        _ (printgrid grid)
        ;_ (println)
@@ -68,15 +68,15 @@
    (fn [{:keys [property/id] :as prop}]
      (assert id)
      (let [image (prop->image prop)
-           tile (->static-tiled-map-tile (:texture-region image))]
-       (put! (m-props tile) "id" id)
+           tile (t/->static-tiled-map-tile (:texture-region image))]
+       (t/put! (t/m-props tile) "id" id)
        tile))))
 
 (def ^:private spawn-creatures? true)
 
-(defn- place-creatures! [context spawn-rate tiled-map spawn-positions area-level-grid]
-  (let [layer (add-layer! tiled-map :name "creatures" :visible false)
-        creature-properties (all-properties context :properties/creatures)]
+(defn- place-creatures! [spawn-rate tiled-map spawn-positions area-level-grid]
+  (let [layer (t/add-layer! tiled-map :name "creatures" :visible false)
+        creature-properties (all-properties :properties/creatures)]
     (when spawn-creatures?
       (doseq [position spawn-positions
               :let [area-level (get area-level-grid position)]
@@ -84,13 +84,13 @@
                          (<= (rand) spawn-rate))]
         (let [creatures (creatures-with-level creature-properties area-level)]
           (when (seq creatures)
-            (set-tile! layer position (creature->tile (rand-nth creatures)))))))))
+            (t/set-tile! layer position (creature->tile (rand-nth creatures)))))))))
 
 (defn generate-modules
   "The generated tiled-map needs to be disposed."
-  [context {:keys [world/map-size
-                   world/max-area-level
-                   world/spawn-rate]}]
+  [{:keys [world/map-size
+           world/max-area-level
+           world/spawn-rate]}]
   (assert (<= max-area-level map-size))
   (let [{:keys [start grid]} (->cave-grid :size map-size)
         ;_ (printgrid grid)
@@ -103,45 +103,45 @@
                    (= #{:ground :transition} (set (g/cells grid))))
                   (str "(set (g/cells grid)): " (set (g/cells grid))))
         scale modules-scale
-        scaled-grid (scale-grid grid scale)
-        tiled-map (place-modules (load-map modules-file)
+        scaled-grid (t/scale-grid grid scale)
+        tiled-map (place-modules (t/load-map modules-file)
                                  scaled-grid
                                  grid
                                  (filter #(= :ground     (get grid %)) (g/posis grid))
                                  (filter #(= :transition (get grid %)) (g/posis grid)))
         start-position (mapv * start scale)
-        can-spawn? #(= "all" (movement-property tiled-map %))
+        can-spawn? #(= "all" (t/movement-property tiled-map %))
         _ (assert (can-spawn? start-position)) ; assuming hoping bottom left is movable
         spawn-positions (flood-fill scaled-grid start-position can-spawn?)
         ;_ (println "scaled grid with filled nil: '?' \n")
         ;_ (printgrid (reduce #(assoc %1 %2 nil) scaled-grid spawn-positions))
         ;_ (println "\n")
-        {:keys [steps area-level-grid]} (->area-level-grid :grid grid
-                                                           :start start
-                                                           :max-level max-area-level
-                                                           :walk-on #{:ground :transition})
+        {:keys [steps area-level-grid]} (t/->area-level-grid :grid grid
+                                                             :start start
+                                                             :max-level max-area-level
+                                                             :walk-on #{:ground :transition})
         ;_ (printgrid area-level-grid)
         _ (assert (or
                    (= (set (concat [max-area-level] (range max-area-level)))
                       (set (g/cells area-level-grid)))
                    (= (set (concat [:wall max-area-level] (range max-area-level)))
                       (set (g/cells area-level-grid)))))
-        scaled-area-level-grid (scale-grid area-level-grid scale)
+        scaled-area-level-grid (t/scale-grid area-level-grid scale)
         get-free-position-in-area-level (fn [area-level]
                                           (rand-nth
                                            (filter
                                             (fn [p]
                                               (and (= area-level (get scaled-area-level-grid p))
                                                    (#{:no-cell :undefined}
-                                                    (property-value tiled-map :creatures p :id))))
+                                                    (t/property-value tiled-map :creatures p :id))))
                                             spawn-positions)))]
-    (place-creatures! context spawn-rate tiled-map spawn-positions scaled-area-level-grid)
+    (place-creatures! spawn-rate tiled-map spawn-positions scaled-area-level-grid)
     {:tiled-map tiled-map
      :start-position (get-free-position-in-area-level 0)
      :area-level-grid scaled-area-level-grid}))
 
 (defn uf-transition [position grid]
-  (transition-idx-value position (= :transition (get grid position))))
+  (t/transition-idx-value position (= :transition (get grid position))))
 
 (defn rand-0-3 []
   (get-rand-weighted-item {0 60 1 1 2 1 3 1}))
@@ -166,32 +166,32 @@
 
 ; can use different algorithms(e.g. cave, module-gen-uf-terrain, room-gen? , differnt cave algorithm ...)
 
-(defn- uf-place-creatures! [context spawn-rate tiled-map spawn-positions]
-  (let [layer (add-layer! tiled-map :name "creatures" :visible false)
-        creatures (all-properties context :properties/creatures)
+(defn- uf-place-creatures! [spawn-rate tiled-map spawn-positions]
+  (let [layer (t/add-layer! tiled-map :name "creatures" :visible false)
+        creatures (all-properties :properties/creatures)
         level (inc (rand-int 6))
         creatures (creatures-with-level creatures level)]
     ;(println "Level: " level)
     ;(println "Creatures with level: " (count creatures))
     (doseq [position spawn-positions
             :when (<= (rand) spawn-rate)]
-      (set-tile! layer position (creature->tile (rand-nth creatures))))))
+      (t/set-tile! layer position (creature->tile (rand-nth creatures))))))
 
 (def ^:private ->tm-tile
   (memoize
    (fn ->tm-tile [texture-region movement]
      {:pre [#{"all" "air" "none"} movement]}
-     (let [tile (->static-tiled-map-tile texture-region)]
-       (put! (m-props tile) "movement" movement)
+     (let [tile (t/->static-tiled-map-tile texture-region)]
+       (t/put! (t/m-props tile) "movement" movement)
        tile))))
 
 (def ^:private sprite-size 48)
 
-(defn- terrain-texture-region [ctx]
-  (->texture-region (texture ctx "maps/uf_terrain.png")))
+(defn- terrain-texture-region []
+  (->texture-region "maps/uf_terrain.png"))
 
-(defn- ->uf-tile [ctx & {:keys [sprite-x sprite-y movement]}]
-  (->tm-tile (->texture-region (terrain-texture-region ctx)
+(defn- ->uf-tile [& {:keys [sprite-x sprite-y movement]}]
+  (->tm-tile (->texture-region (terrain-texture-region)
                                [(* sprite-x sprite-size)
                                 (* sprite-y sprite-size)
                                 sprite-size
@@ -212,27 +212,27 @@
         y [13,16,19,22,25,28]]
     [x y]))
 
-(defn- ->ground-tile [ctx [x y]]
-  (->uf-tile ctx :sprite-x (+ x (rand-0-3)) :sprite-y y :movement "all"))
+(defn- ->ground-tile [[x y]]
+  (->uf-tile :sprite-x (+ x (rand-0-3)) :sprite-y y :movement "all"))
 
-(defn- ->wall-tile [ctx [x y]]
-  (->uf-tile ctx :sprite-x (+ x (rand-0-5)) :sprite-y y :movement "none"))
+(defn- ->wall-tile [[x y]]
+  (->uf-tile :sprite-x (+ x (rand-0-5)) :sprite-y y :movement "none"))
 
-(defn- ->transition-tile [ctx [x y]]
-  (->uf-tile ctx :sprite-x (+ x (rand-0-5)) :sprite-y y :movement "none"))
+(defn- ->transition-tile [[x y]]
+  (->uf-tile :sprite-x (+ x (rand-0-5)) :sprite-y y :movement "none"))
 
 (defn- transition? [grid [x y]]
   (= :ground (get grid [x (dec y)])))
 
 (def ^:private uf-caves-scale 4)
 
-(defn uf-caves [ctx {:keys [world/map-size world/spawn-rate]}]
+(defn uf-caves [{:keys [world/map-size world/spawn-rate]}]
   (let [{:keys [start grid]} (->cave-grid :size map-size)
         ;_ (println "Start: " start)
         ;_ (printgrid grid)
         ;_ (println)
         scale uf-caves-scale
-        grid (scalegrid grid scale)
+        grid (t/scalegrid grid scale)
         ;_ (printgrid grid)
         ;_ (println)
         start-position (mapv #(* % scale) start)
@@ -249,21 +249,20 @@
         transition-idx  [wall-x (inc wall-y)]
         position->tile (fn [position]
                          (case (get grid position)
-                           :wall (->wall-tile ctx wall-idx)
+                           :wall (->wall-tile wall-idx)
                            :transition (if (transition? grid position)
-                                         (->transition-tile ctx transition-idx)
-                                         (->wall-tile ctx wall-idx))
-                           :ground (->ground-tile ctx ground-idx)))
-        tiled-map (wgt-grid->tiled-map grid position->tile)
-
-        can-spawn? #(= "all" (movement-property tiled-map %))
+                                         (->transition-tile transition-idx)
+                                         (->wall-tile wall-idx))
+                           :ground (->ground-tile ground-idx)))
+        tiled-map (t/wgt-grid->tiled-map grid position->tile)
+        can-spawn? #(= "all" (t/movement-property tiled-map %))
         _ (assert (can-spawn? start-position)) ; assuming hoping bottom left is movable
         spawn-positions (flood-fill grid start-position can-spawn?)
         ]
     ; TODO don't spawn my faction vampire w. items ...
     ; TODO don't spawn creatures on start position
     ; (all check have HP/movement..../?? ?) (breaks potential field, targeting, ...)
-    (uf-place-creatures! ctx spawn-rate tiled-map spawn-positions)
+    (uf-place-creatures! spawn-rate tiled-map spawn-positions)
     {:tiled-map tiled-map
      :start-position start-position}))
 
@@ -291,21 +290,18 @@
    :overview {:title "Worlds"
               :columns 10}})
 
-(defmulti generate (fn [_ctx world] (:world/generator world)))
+(defmulti generate (fn [world] (:world/generator world)))
 
-(defmethod generate :world.generator/tiled-map [ctx world]
-  {:tiled-map (load-map (:world/tiled-map world))
+(defmethod generate :world.generator/tiled-map [world]
+  {:tiled-map (t/load-map (:world/tiled-map world))
    :start-position [32 71]})
 
-(defmethod generate :world.generator/modules [ctx world]
-  (generate-modules ctx world))
+(defmethod generate :world.generator/modules [world]
+  (generate-modules world))
 
-(defmethod generate :world.generator/uf-caves [ctx world]
-  (uf-caves ctx world))
+(defmethod generate :world.generator/uf-caves [world]
+  (uf-caves world))
 
-(extend-type clojure.ctx.Context
-  WorldGen
-  (->world [ctx world-id]
-    (let [prop (build-property ctx world-id)]
-      (assoc (generate ctx prop)
-             :world/player-creature (:world/player-creature prop)))))
+(defn- generate-level [world-id]
+  (let [prop (build-property world-id)]
+    (assoc (generate prop) :world/player-creature (:world/player-creature prop))))

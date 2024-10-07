@@ -14,21 +14,19 @@
 
 ; player-creature needs mana & inventory
 ; till then hardcode :creatures/vampire
-(defn- world->player-creature [{:keys [context/start-position]}
-                               {:keys [world/player-creature]}]
+(defn- world->player-creature [start-position]
   {:position start-position
-   :creature-id :creatures/vampire #_(:property/id player-creature)
+   :creature-id :creatures/vampire
    :components player-components})
 
-(defn- world->enemy-creatures [{:keys [context/tiled-map]}]
-  (for [[position creature-id] (positions-with-property tiled-map :creatures :id)]
+(defn- world->enemy-creatures [tiled-map]
+  (for [[position creature-id] (t/positions-with-property tiled-map :creatures :id)]
     {:position position
      :creature-id (keyword creature-id)
      :components npc-components}))
 
-(defn spawn-creatures! [ctx tiled-level]
-  (effect! ctx
-           (for [creature (cons (world->player-creature ctx tiled-level)
+(defn spawn-creatures! [tiled-map start-position]
+  (effect! (for [creature (cons (world->player-creature start-position)
                                 (when spawn-enemies?
-                                  (world->enemy-creatures ctx)))]
+                                  (world->enemy-creatures tiled-map)))]
              [:tx/creature (update creature :position tile->middle)])))

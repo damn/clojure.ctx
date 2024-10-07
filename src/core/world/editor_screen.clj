@@ -11,18 +11,17 @@
 
 (defn- show-whole-map! [camera tiled-map]
   (camera-set-position! camera
-                        [(/ (width  tiled-map) 2)
-                         (/ (height tiled-map) 2)])
+                        [(/ (t/width  tiled-map) 2)
+                         (/ (t/height tiled-map) 2)])
   (set-zoom! camera
              (calculate-zoom camera
                              :left [0 0]
-                             :top [0 (height tiled-map)]
-                             :right [(width tiled-map) 0]
+                             :top [0 (t/height tiled-map)]
+                             :right [(t/width tiled-map) 0]
                              :bottom [0 0])))
 
-(defn- current-data [ctx]
-  (-> ctx
-      current-screen
+(defn- current-data []
+  (-> (current-screen)
       (get 1)
       :sub-screen
       (get 1)))
@@ -34,35 +33,35 @@ zoom: shift-left,minus
 ESCAPE: leave
 direction keys: move")
 
-(defn- debug-infos ^String [ctx]
-  (let [tile (->tile (world-mouse-position ctx))
+(defn- map-infos ^String []
+  (let [tile (->tile (world-mouse-position))
         {:keys [tiled-map
-                area-level-grid]} @(current-data ctx)]
+                area-level-grid]} @(current-data)]
     (->> [infotext
           (str "Tile " tile)
           (when-not area-level-grid
             (str "Module " (mapv (comp int /)
-                                 (world-mouse-position ctx)
+                                 (world-mouse-position)
                                  [module-width module-height])))
           (when area-level-grid
-            (str "Creature id: " (property-value tiled-map :creatures tile :id)))
+            (str "Creature id: " (t/property-value tiled-map :creatures tile :id)))
           (when area-level-grid
             (let [level (get area-level-grid tile)]
               (when (number? level)
                 (str "Area level:" level))))
-          (str "Movement properties " (movement-property tiled-map tile) "\n"
-               (apply vector (movement-properties tiled-map tile)))]
+          (str "Movement properties " (t/movement-property tiled-map tile) "\n"
+               (apply vector (t/movement-properties tiled-map tile)))]
          (remove nil?)
          (str/join "\n"))))
 
 ; same as debug-window
-(defn- ->info-window [ctx]
+(defn- ->info-window []
   (let [label (->label "")
         window (->window {:title "Info" :rows [[label]]})]
     (add-actor! window (->actor {:act #(do
-                                              (.setText label (debug-infos %))
-                                              (.pack window))}))
-    (set-position! window 0 (gui-viewport-height ctx))
+                                        (.setText label (map-infos))
+                                        (.pack window))}))
+    (set-position! window 0 (gui-viewport-height))
     window))
 
 (defn- adjust-zoom [camera by] ; DRY context.game
@@ -74,7 +73,7 @@ direction keys: move")
 
 ; TODO textfield takes control !
 ; TODO PLUS symbol shift & = symbol on keyboard not registered
-(defn- camera-controls [context camera]
+(defn- camera-controls [camera]
   (when (key-pressed? :keys/shift-left)
     (adjust-zoom camera    zoom-speed))
   (when (key-pressed? :keys/minus)
@@ -93,57 +92,55 @@ direction keys: move")
 ; TODO unused
 ; TODO also draw numbers of area levels big as module size...
 
-(defn- render-on-map [g ctx]
+(defn- render-on-map []
   (let [{:keys [tiled-map
                 area-level-grid
                 start-position
                 show-movement-properties
-                show-grid-lines]} @(current-data ctx)
-        visible-tiles (visible-tiles (world-camera ctx))
-        [x y] (->tile (world-mouse-position ctx))]
-    (draw-rectangle g x y 1 1 :white)
+                show-grid-lines]} @(current-data)
+        visible-tiles (visible-tiles (world-camera))
+        [x y] (->tile (world-mouse-position))]
+    (draw-rectangle x y 1 1 :white)
     (when start-position
-      (draw-filled-rectangle g (start-position 0) (start-position 1) 1 1 [1 0 1 0.9]))
+      (draw-filled-rectangle (start-position 0) (start-position 1) 1 1 [1 0 1 0.9]))
     ; TODO move down to other doseq and make button
     (when show-movement-properties
       (doseq [[x y] visible-tiles
-              :let [movement-property (movement-property tiled-map [x y])]]
-        (draw-filled-circle g [(+ x 0.5) (+ y 0.5)] 0.08 :black)
-        (draw-filled-circle g [(+ x 0.5) (+ y 0.5)]
+              :let [movement-property (t/movement-property tiled-map [x y])]]
+        (draw-filled-circle [(+ x 0.5) (+ y 0.5)] 0.08 :black)
+        (draw-filled-circle [(+ x 0.5) (+ y 0.5)]
                             0.05
                             (case movement-property
                               "all"   :green
                               "air"   :orange
                               "none"  :red))))
     (when show-grid-lines
-      (draw-grid g 0 0 (width  tiled-map) (height tiled-map) 1 1 [1 1 1 0.5]))))
+      (draw-grid 0 0 (t/width  tiled-map) (t/height tiled-map) 1 1 [1 1 1 0.5]))))
 
 (def ^:private world-id :worlds/modules)
 
-(defn- generate-screen-ctx [context properties]
+(defn- generate-screen-ctx [properties]
   (let [;{:keys [tiled-map area-level-grid start-position]} (generate-modules context properties)
-        {:keys [tiled-map start-position]} (->world context world-id)
-        atom-data (current-data context)]
+        {:keys [tiled-map start-position]} (generate-level world-id)
+        atom-data (current-data)]
     (dispose! (:tiled-map @atom-data))
     (swap! atom-data assoc
            :tiled-map tiled-map
            ;:area-level-grid area-level-grid
            :start-position start-position)
-    (show-whole-map! (world-camera context) tiled-map)
-    (.setVisible (get-layer tiled-map "creatures") true)
-    context))
+    (show-whole-map! (world-camera) tiled-map)
+    (.setVisible (t/get-layer tiled-map "creatures") true)))
 
-(defn ->generate-map-window [ctx level-id]
+(defn ->generate-map-window [level-id]
   (->window {:title "Properties"
              :cell-defaults {:pad 10}
              :rows [[(->label (with-out-str
                                (clojure.pprint/pprint
-                                (build-property ctx level-id))))]
-                    [(->text-button "Generate" #(try (generate-screen-ctx % (build-property % level-id))
+                                (build-property level-id))))]
+                    [(->text-button "Generate" #(try (generate-screen-ctx (build-property level-id))
                                                      (catch Throwable t
-                                                       (error-window! % t)
-                                                       (println t)
-                                                       %)))]]
+                                                       (error-window! t)
+                                                       (println t))))]]
              :pack? true}))
 
 (defcomponent ::sub-screen
@@ -152,30 +149,29 @@ direction keys: move")
   #_(dispose [_]
       (dispose! (:tiled-map @current-data)))
 
-  (screen-enter [_ ctx]
-    (show-whole-map! (world-camera ctx) (:tiled-map @current-data)))
+  (screen-enter [_]
+    (show-whole-map! (world-camera) (:tiled-map @current-data)))
 
-  (screen-exit [_ ctx]
-    (reset-zoom! (world-camera ctx)))
+  (screen-exit [_]
+    (reset-zoom! (world-camera)))
 
-  (screen-render [_ context]
-    (render! context (:tiled-map @current-data) (constantly white))
-    (render-world-view context #(render-on-map % context))
+  (screen-render [_]
+    (draw-tiled-map (:tiled-map @current-data) (constantly white))
+    (render-world-view! render-on-map)
     (if (key-just-pressed? :keys/l)
       (swap! current-data update :show-grid-lines not))
     (if (key-just-pressed? :keys/m)
       (swap! current-data update :show-movement-properties not))
-    (camera-controls context (world-camera context))
-    (if (key-just-pressed? :keys/escape)
-      (change-screen context :screens/main-menu)
-      context)))
+    (camera-controls (world-camera))
+    (when (key-just-pressed? :keys/escape)
+      (change-screen :screens/main-menu))))
 
 (derive :screens/map-editor :screens/stage)
 (defcomponent :screens/map-editor
-  (->mk [_ ctx]
+  (->mk [_]
     {:sub-screen [::sub-screen
-                  (atom {:tiled-map (load-map modules-file)
+                  (atom {:tiled-map (t/load-map modules-file)
                          :show-movement-properties false
                          :show-grid-lines false})]
-     :stage (->stage ctx [(->generate-map-window ctx world-id)
-                             (->info-window ctx)])}))
+     :stage (->stage [(->generate-map-window world-id)
+                      (->info-window)])}))

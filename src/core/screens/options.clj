@@ -15,9 +15,9 @@
     @avar)
 
   (set-state [this is-selected]
-    (.bindRoot avar is-selected)))
+    (bind-root avar is-selected)))
 
-; TODO not using clojure.ctx ns ... only core
+; TODO not using clojure.gdx ns ... only core
 
 (defn- debug-flags [] ;
   (apply concat
@@ -32,35 +32,27 @@
 (def ^:private key-help-text
   "[W][A][S][D] - Move\n[I] - Inventory window\n[E] - Entity Info window\n[-]/[=] - Zoom\n[TAB] - Minimap\n[P]/[SPACE] - Unpause")
 
-(defn- create-table [{:keys [context/config] :as ctx}]
+(defn- create-table []
   (->table {:rows (concat
                    [[(->label key-help-text)]]
-
-                   (when (safe-get config :debug-window?)
-                     [[(->label "[Z] - Debug window")]])
-
-                   (when (safe-get config :debug-options?)
-                     (for [check-box debug-flags]
-                       [(->check-box (get-text check-box)
-                                     (partial set-state check-box)
-                                     (boolean (get-state check-box)))]))
-
-                   [[(->text-button "Resume" #(change-screen % :screens/world))]
-
-                    [(->text-button "Exit" #(change-screen % :screens/main-menu))]])
-
+                   (when dev-mode? [[(->label "[Z] - Debug window")]])
+                   (when dev-mode? (for [check-box debug-flags]
+                                     [(->check-box (get-text check-box)
+                                                   (partial set-state check-box)
+                                                   (boolean (get-state check-box)))]))
+                   [[(->text-button "Resume" #(change-screen :screens/world))]
+                    [(->text-button "Exit"   #(change-screen :screens/main-menu))]])
             :fill-parent? true
             :cell-defaults {:pad-bottom 10}}))
 
 (defcomponent :options/sub-screen
-  (screen-render [_ ctx]
-    (if (key-just-pressed? :keys/escape)
-      (change-screen ctx :screens/world)
-      ctx)))
+  (screen-render [_]
+    (when (key-just-pressed? :keys/escape)
+      (change-screen :screens/world))))
 
 (derive :screens/options-menu :screens/stage)
 (defcomponent :screens/options-menu
-  (->mk [_ ctx]
-    {:stage (->stage ctx [(->background-image ctx)
-                          (create-table ctx)])
+  (->mk [_]
+    {:stage (->stage [(->background-image)
+                      (create-table)])
      :sub-screen [:options/sub-screen]}))

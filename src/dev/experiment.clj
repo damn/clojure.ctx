@@ -1,8 +1,7 @@
 (ns dev.experiment
-  (:require [clojure.ctx :refer :all]
-            [clojure.gdx :refer :all]
-            [core.entity :refer :all]))
+  (:require [clojure.gdx :refer :all]))
 (comment
+
 
  (post-runnable! (show-tree-view! :ctx))
 
@@ -14,8 +13,13 @@
 
  (print-app-values-tree)
 
+ ; We mostly want to know abouts txs, entity and schema
+ ; the rest not so important?
+
  (print-txs "txs.md")
+
  (print-components "components.md")
+
  (spit-out "data-components.md" (data-components))
 
  ; TODO items dont refresh on clicking tab -!
@@ -54,15 +58,29 @@
             (comp #(str/split % #"-")
                   name
                   :property/id)
-            (property/all-properties @app-state :properties/items)))))))
+            (property/all-properties :properties/items)))))))
 
  )
 
-(defn- post-tx! [tx]
-  (post-runnable! (swap! app-state effect! [tx])))
+(comment
+ ; start world - small empty test room
+ ; 2 creatures - player?
+ ; start skill w. applicable needs target (bow)
+ ; this command:
+ (post-tx! [:e/destroy (get-entity 68)])
+ ; check skill has stopped using
 
-(defn- learn-skill! [skill-id] (post-tx! (fn [ctx] [[:tx/add-skill (:entity/id (player-entity* ctx)) (build-property ctx skill-id)]])))
-(defn- create-item! [item-id]  (post-tx! (fn [ctx] [[:tx/item (:position (player-entity* ctx))       (build-property ctx item-id)]])))
+ (post-tx! [:tx/creature {:position [35 73]
+                          :creature-id :creatures/dragon-red
+                          :components {:entity/state [:state/npc :npc-sleeping]
+                                       :entity/faction :evil} }])
+ )
+
+(defn- post-tx! [tx]
+  (post-runnable! (effect! [tx])))
+
+(defn- learn-skill! [skill-id] (post-tx! (fn [] [[:tx/add-skill (:entity/id @player-entity) (build-property skill-id)]])))
+(defn- create-item! [item-id]  (post-tx! (fn [] [[:tx/item       (:position @player-entity) (build-property item-id)]])))
 
 (defn- protocol? [value]
   (and (instance? clojure.lang.PersistentArrayMap value)
@@ -102,6 +120,11 @@
 ; https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/organizing-information-with-collapsed-sections
 ; -> and after each 'build' I can have a bash script which uploads the components go github
 
+; => component-attributes private
+; => move component docs in here
+; => I need also an internal documentation ??
+; of private fns?!
+
 (defn- print-txs [file]
   (spit file
         (binding [*print-level* nil]
@@ -131,7 +154,7 @@
 (defn- data-components []
   (sort
    (concat
-    (keys (methods ->value))
+    (keys (methods @#'clojure.gdx/->value))
     (map first
          (filter (fn [[k attr-m]]
                    (:schema attr-m))
@@ -224,7 +247,7 @@
     (add-map-nodes! node (children->str-map (children v)) level)))
 
 (comment
- (let [vis-image (first (children (s-root (stage-get @app-state))))]
+ (let [vis-image (first (children (s-root (stage-get))))]
    (supers (class vis-image))
    (str vis-image)
    )
@@ -237,7 +260,7 @@
       ;(println "add-map-nodes! k " k)
       (try
        (let [node (->t-node (->label (->labelstr k v)))]
-         (t-node-add! parent-node node)
+         (.add parent-node node) ; no t-node-add!: tree cannot be casted to tree-node ... , Tree itself different .add
          #_(when (instance? clojure.lang.Atom v) ; StackOverFLow
            (->nested-nodes node level @v))
          (->nested-nodes node level v))
@@ -252,28 +275,25 @@
     (add-map-nodes! tree prop 0)
     tree))
 
-(defn- scroll-pane-cell [ctx rows]
+(defn- scroll-pane-cell [rows]
   (let [table (->table {:rows rows
-                           :cell-defaults {:pad 1}
-                           :pack? true})
+                        :cell-defaults {:pad 1}
+                        :pack? true})
         scroll-pane (->scroll-pane table)]
     {:actor scroll-pane
-     :width (/ (gui-viewport-width ctx) 2)
+     :width (/ (gui-viewport-width) 2)
      :height
-     (- (gui-viewport-height ctx) 50)
-     #_(min (- (gui-viewport-height ctx) 50) (height table))}))
+     (- (gui-viewport-height) 50)
+     #_(min (- (gui-viewport-height) 50) (height table))}))
 
 (defn- show-tree-view! [obj]
-  (let [ctx @app-state
-        object (case obj
-                 :ctx ctx
-                 :entity (mouseover-entity* ctx)
-                 :tile @(get (:context/grid ctx) (mapv int (world-mouse-position ctx))))]
-    (stage-add! ctx
-                (->window {:title "Tree View"
+  (let [object (case obj
+                 :entity (mouseover-entity*)
+                 :tile @(get world-grid (mapv int (world-mouse-position))))]
+    (stage-add! (->window {:title "Tree View"
                            :close-button? true
                            :close-on-escape? true
                            :center? true
-                           :rows [[(scroll-pane-cell ctx [[(->prop-tree (into (sorted-map) object))]])]]
+                           :rows [[(scroll-pane-cell [[(->prop-tree (into (sorted-map) object))]])]]
                            :pack? true}))
     nil))
