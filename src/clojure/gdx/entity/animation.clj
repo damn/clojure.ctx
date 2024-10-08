@@ -54,7 +54,7 @@
 (defn- tx-assoc-image-current-frame [eid animation]
   [:e/assoc eid :entity/image (current-frame animation)])
 
-(defcomponent :entity/animation
+(defc :entity/animation
   {:data :data/animation
    :let animation}
   (create [_ eid]
@@ -64,7 +64,7 @@
     [(tx-assoc-image-current-frame eid animation)
      [:e/assoc eid k (anim-tick animation world-delta)]]))
 
-(defcomponent :entity/delete-after-animation-stopped?
+(defc :entity/delete-after-animation-stopped?
   (create [_ entity]
     (-> @entity :entity/animation :looping? not assert))
 
@@ -72,14 +72,14 @@
     (when (anim-stopped? (:entity/animation @entity))
       [[:e/destroy entity]])))
 
-(def-type :properties/audiovisuals
+(def-property-type :properties/audiovisuals
   {:schema [:tx/sound
             :entity/animation]
    :overview {:title "Audiovisuals"
               :columns 10
               :image/scale 2}})
 
-(defcomponent :tx/audiovisual
+(defc :tx/audiovisual
   (do! [[_ position id]]
     (let [{:keys [tx/sound
                   entity/animation]} (build-property id)]

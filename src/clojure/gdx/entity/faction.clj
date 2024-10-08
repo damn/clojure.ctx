@@ -8,7 +8,7 @@
 (defn friendly-faction [{:keys [entity/faction]}]
   faction)
 
-(defcomponent :entity/faction
+(defc :entity/faction
   {:let faction
    :data [:enum [:good :evil]]}
   (info-text [_]

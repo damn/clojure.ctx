@@ -47,6 +47,6 @@
                 (key-just-pressed? :keys/escape))
         (change-screen :screens/world))))
 
-#_(defcomponent :screens/minimap
+#_(defc :screens/minimap
   (->mk [_]
     (->Screen)))

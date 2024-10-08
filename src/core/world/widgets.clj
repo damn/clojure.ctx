@@ -105,7 +105,7 @@
   {:horizontal-group (::action-bar (:action-bar-table (stage-get)))
    :button-group (:action-bar world-widgets)})
 
-(defcomponent :tx.action-bar/add
+(defc :tx.action-bar/add
   (do! [[_ {:keys [property/id entity/image] :as skill}]]
     (let [{:keys [horizontal-group button-group]} (get-action-bar)
           button (->image-button image (fn []) {:scale image-scale})]
@@ -115,7 +115,7 @@
       (bg-add! button-group button)
       nil)))
 
-(defcomponent :tx.action-bar/remove
+(defc :tx.action-bar/remove
   (do! [[_ {:keys [property/id]}]]
     (let [{:keys [horizontal-group button-group]} (get-action-bar)
           button (get horizontal-group id)]
@@ -208,12 +208,12 @@
     (when (>= counter duration-seconds)
       (bind-root #'message-to-player nil))))
 
-(defcomponent :widgets/player-message
+(defc :widgets/player-message
   (->mk [_]
     (->actor {:draw draw-player-message
               :act check-remove-message})))
 
-(defcomponent :tx/msg-to-player
+(defc :tx/msg-to-player
   (do! [[_ message]]
     (bind-root #'message-to-player {:message message :counter 0})
     nil))

@@ -41,7 +41,7 @@
 (def ^:private image-file-extensions #{"png" "bmp"})
 (def ^:private sound-file-extensions #{"wav"})
 
-(defcomponent :context/assets
+(defc :context/assets
   {:data :string}
   (->mk [[_ folder]]
     (let [manager (asset-manager)
@@ -67,7 +67,7 @@
   [path]
   (Sound/.play (asset path)))
 
-(defcomponent :tx/sound
+(defc :tx/sound
   {:data :sound}
   (do! [[_ file]]
     (play-sound! file)

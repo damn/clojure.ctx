@@ -1,6 +1,6 @@
 (in-ns 'clojure.gdx)
 
-(def-type :properties/skills
+(def-property-type :properties/skills
   {:schema [:entity/image
             :property/pretty-name
             :skill/action-time-modifier-key
@@ -35,33 +35,33 @@
                        button))]
              :pack? true}))
 
-(defcomponent :skill/action-time {:data :pos}
+(defc :skill/action-time {:data :pos}
   (info-text [[_ v]]
     (str "[GOLD]Action-Time: " (readable-number v) " seconds[]")))
 
-(defcomponent :skill/cooldown {:data :nat-int}
+(defc :skill/cooldown {:data :nat-int}
   (info-text [[_ v]]
     (when-not (zero? v)
       (str "[SKY]Cooldown: " (readable-number v) " seconds[]"))))
 
-(defcomponent :skill/cost {:data :nat-int}
+(defc :skill/cost {:data :nat-int}
   (info-text [[_ v]]
     (when-not (zero? v)
       (str "[CYAN]Cost: " v " Mana[]"))))
 
-(defcomponent :skill/effects
+(defc :skill/effects
   {:data [:components-ns :effect]})
 
-(defcomponent :skill/start-action-sound {:data :sound})
+(defc :skill/start-action-sound {:data :sound})
 
-(defcomponent :skill/action-time-modifier-key
+(defc :skill/action-time-modifier-key
   {:data [:enum [:stats/cast-speed :stats/attack-speed]]}
   (info-text [[_ v]]
     (str "[VIOLET]" (case v
                       :stats/cast-speed "Spell"
                       :stats/attack-speed "Attack") "[]")))
 
-(defcomponent :entity/skills
+(defc :entity/skills
   {:data [:one-to-many :properties/skills]}
   (create [[k skills] eid]
     (cons [:e/assoc eid k nil]
@@ -82,21 +82,21 @@
 (defn has-skill? [{:keys [entity/skills]} {:keys [property/id]}]
   (contains? skills id))
 
-(defcomponent :tx/add-skill
+(defc :tx/add-skill
   (do! [[_ entity {:keys [property/id] :as skill}]]
     (assert (not (has-skill? @entity skill)))
     [[:e/assoc-in entity [:entity/skills id] skill]
      (when (:entity/player? @entity)
        [:tx.action-bar/add skill])]))
 
-(defcomponent :tx/remove-skill
+(defc :tx/remove-skill
   (do! [[_ entity {:keys [property/id] :as skill}]]
     (assert (has-skill? @entity skill))
     [[:e/dissoc-in entity [:entity/skills id]]
      (when (:entity/player? @entity)
        [:tx.action-bar/remove skill])]))
 
-(defcomponent :tx.entity.stats/pay-mana-cost
+(defc :tx.entity.stats/pay-mana-cost
   (do! [[_ entity cost]]
     (let [mana-val ((entity-stat @entity :stats/mana) 0)]
       (assert (<= cost mana-val))

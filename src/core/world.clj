@@ -59,7 +59,7 @@
              (cleanup-last-world!)
              (init-new-world! (generate-level world-property-id))))
 
-(defcomponent :tx/add-to-world
+(defc :tx/add-to-world
   (do! [[_ entity]]
     (content-grid-update-entity! entity)
     ; https://github.com/damn/core/issues/58
@@ -67,13 +67,13 @@
     (grid-add-entity! entity)
     nil))
 
-(defcomponent :tx/remove-from-world
+(defc :tx/remove-from-world
   (do! [[_ entity]]
     (content-grid-remove-entity! entity)
     (grid-remove-entity! entity)
     nil))
 
-(defcomponent :tx/position-changed
+(defc :tx/position-changed
   (do! [[_ entity]]
     (content-grid-update-entity! entity)
     (grid-entity-position-changed! entity)

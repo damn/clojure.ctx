@@ -106,7 +106,7 @@
         #_(key-just-pressed? :keys/tab)
         #_(change-screen :screens/minimap)))
 
-(defcomponent :world/sub-screen
+(defc :world/sub-screen
   (screen-exit [_]
     (set-cursor! :cursors/default))
 
@@ -116,7 +116,7 @@
     (check-key-input)))
 
 (derive :screens/world :screens/stage)
-(defcomponent :screens/world
+(defc :screens/world
   (->mk [_]
     {:stage (->stage [])
      :sub-screen [:world/sub-screen]}))

@@ -10,7 +10,7 @@
        (filter #(= (:entity/faction %) faction))
        (map :entity/id)))
 
-(defcomponent :entity/alert-friendlies-after-duration
+(defc :entity/alert-friendlies-after-duration
   {:let {:keys [counter faction]}}
   (tick [_ eid]
     (when (stopped? counter)
@@ -18,7 +18,7 @@
             (for [friendly-eid (friendlies-in-radius (:position @eid) faction)]
               [:tx/event friendly-eid :alert])))))
 
-(defcomponent :tx/shout
+(defc :tx/shout
   (do! [[_ position faction delay-seconds]]
     [[:e/create
       position

@@ -36,7 +36,7 @@
           {}
           components))
 
-(defcomponent :context/screens
+(defc :context/screens
   {:data :some
    :let screen-ks}
   (->mk [_]

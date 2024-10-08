@@ -3,7 +3,7 @@
             [clojure.string :as str]
             [reduce-fsm :as fsm]))
 
-(def-type :properties/creatures
+(def-property-type :properties/creatures
   {:schema [:entity/body
             :property/pretty-name
             :creature/species
@@ -30,19 +30,19 @@
 ; stats armor-pierce wrong place
 ; assert min body size from core.entity
 
-(defcomponent :entity/body
+(defc :entity/body
   {:data [:map [:body/width
                 :body/height
                 :body/flying?]]})
 
-(defcomponent :creature/species
+(defc :creature/species
   {:data [:qualified-keyword {:namespace :species}]}
   (->mk [[_ species]]
     (str/capitalize (name species)))
   (info-text [[_ species]]
     (str "[LIGHT_GRAY]Creature - " species "[]")))
 
-(defcomponent :creature/level
+(defc :creature/level
   {:data :pos-int}
   (info-text [[_ lvl]]
     (str "[GRAY]Level " lvl "[]")))
@@ -61,7 +61,7 @@
    :collides? true
    :z-order :z-order/ground #_(if flying? :z-order/flying :z-order/ground)})
 
-(defcomponent :tx/creature
+(defc :tx/creature
   {:let {:keys [position creature-id components]}}
   (do! [_]
     (let [props (build-property creature-id)]
@@ -132,7 +132,7 @@
 (defn- ->init-fsm [fsm initial-state]
   (assoc (fsm initial-state nil) :state initial-state))
 
-(defcomponent :entity/state
+(defc :entity/state
   (->mk [[_ [player-or-npc initial-state]]]
     {:initial-state initial-state
      :fsm (case player-or-npc
@@ -170,11 +170,11 @@
            [:e/dissoc eid old-state-k]
            [:e/assoc eid new-state-k (new-state-obj 1)]])))))
 
-(defcomponent :tx/event
+(defc :tx/event
   (do! [[_ eid event params]]
     (send-event! eid event params)))
 
-(defcomponent :npc-dead
+(defc :npc-dead
   {:let {:keys [eid]}}
   (->mk [[_ eid]]
     {:eid eid})
@@ -185,7 +185,7 @@
 ; npc moving is basically a performance optimization so npcs do not have to check
 ; pathfindinusable skills every frame
 ; also prevents fast twitching around changing directions every frame
-(defcomponent :npc-moving
+(defc :npc-moving
   {:let {:keys [eid movement-vector counter]}}
   (->mk [[_ eid movement-vector]]
     {:eid eid
@@ -203,7 +203,7 @@
     (when (stopped? counter)
       [[:tx/event eid :timer-finished]])))
 
-(defcomponent :npc-sleeping
+(defc :npc-sleeping
   {:let {:keys [eid]}}
   (->mk [[_ eid]]
     {:eid eid})
@@ -226,7 +226,7 @@
                   :y (+ y (:half-height entity*))
                   :up? true}))))
 
-(defcomponent :player-dead
+(defc :player-dead
   (player-enter [_]
     [[:tx/cursor :cursors/black-x]])
 
@@ -292,7 +292,7 @@
 (defn- world-item? []
   (not (mouse-on-actor?)))
 
-(defcomponent :player-item-on-cursor
+(defc :player-item-on-cursor
   {:let {:keys [eid item]}}
   (->mk [[_ eid item]]
     {:eid eid
@@ -350,7 +350,7 @@
         (when (pos? (v-length v))
           v)))))
 
-(defcomponent :player-moving
+(defc :player-moving
   {:let {:keys [eid movement-vector]}}
   (->mk [[_ eid movement-vector]]
     {:eid eid
@@ -375,7 +375,7 @@
                               :speed (entity-stat @eid :stats/movement-speed)}]]
       [[:tx/event eid :no-movement-input]])))
 
-(defcomponent :stunned
+(defc :stunned
   {:let {:keys [eid counter]}}
   (->mk [[_ eid duration]]
     {:eid eid
@@ -394,7 +394,7 @@
   (render-below [_ entity*]
     (draw-circle (:position entity*) 0.5 [1 1 1 0.6])))
 
-(defcomponent :entity/player?
+(defc :entity/player?
   (create [_ eid]
     (bind-root #'player-entity eid)
     nil))

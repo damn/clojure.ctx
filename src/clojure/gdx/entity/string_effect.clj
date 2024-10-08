@@ -1,6 +1,6 @@
 (in-ns 'clojure.gdx)
 
-(defcomponent :entity/string-effect
+(defc :entity/string-effect
   (tick [[k {:keys [counter]}] eid]
     (when (stopped? counter)
       [[:e/dissoc eid k]]))
@@ -13,7 +13,7 @@
                   :scale 2
                   :up? true}))))
 
-(defcomponent :tx/add-text-effect
+(defc :tx/add-text-effect
   (do! [[_ entity text]]
     [[:e/assoc
       entity

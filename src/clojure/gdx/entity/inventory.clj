@@ -1,6 +1,6 @@
 (in-ns 'clojure.gdx)
 
-(def-type :properties/items
+(def-property-type :properties/items
   {:schema [:property/pretty-name
             :entity/image
             :item/slot
@@ -29,14 +29,14 @@
               [slot (g/create-grid width height (constantly nil))]))
        (into {})))
 
-(defcomponent :item/modifiers
+(defc :item/modifiers
   {:data [:components-ns :modifier]
    :let modifiers}
   (info-text [_]
     (when (seq modifiers)
       (mod-info-text modifiers))))
 
-(defcomponent :item/slot
+(defc :item/slot
   {:data [:enum (keys empty-inventory)]})
 
 (def ^:private body-props
@@ -44,7 +44,7 @@
    :height 0.75
    :z-order :z-order/on-ground})
 
-(defcomponent :tx/item
+(defc :tx/item
   (do! [[_ position item]]
     [[:e/create position body-props {:entity/image (:entity/image item)
                                      :entity/item item
@@ -86,11 +86,11 @@
      (when (:entity/player? entity*)
        [:tx/remove-item-from-widget cell])]))
 
-(defcomponent :tx/set-item
+(defc :tx/set-item
   (do! [[_ entity cell item]]
     (set-item @entity cell item)))
 
-(defcomponent :tx/remove-item
+(defc :tx/remove-item
   (do! [[_ entity cell]]
     (remove-item @entity cell)))
 
@@ -115,7 +115,7 @@
     (concat (remove-item entity* cell)
             (set-item entity* cell (update cell-item :count + (:count item))))))
 
-(defcomponent :tx/stack-item
+(defc :tx/stack-item
   (do! [[_ entity cell item]]
     (stack-item @entity cell item)))
 
@@ -135,7 +135,7 @@
    (try-put-item-in entity* (:item/slot item)   item)
    (try-put-item-in entity* :inventory.slot/bag item)))
 
-(defcomponent :tx/pickup-item
+(defc :tx/pickup-item
   (do! [[_ entity item]]
     (pickup-item @entity item)))
 
@@ -144,7 +144,7 @@
   (can-pickup-item? [entity* item]
     (boolean (pickup-item entity* item))))
 
-(defcomponent :entity/inventory
+(defc :entity/inventory
   {:data [:one-to-many :properties/items]}
   (create [[_ items] eid]
     (cons [:e/assoc eid :entity/inventory empty-inventory]
@@ -259,7 +259,7 @@
   {:table (::table (get (:windows (stage-get)) :inventory-window))
    :slot->background (:slot->background world-widgets)})
 
-(defcomponent :tx/set-item-image-in-widget
+(defc :tx/set-item-image-in-widget
   (do! [[_ cell item]]
     (let [{:keys [table]} (get-inventory)
           cell-widget (get table cell)
@@ -270,7 +270,7 @@
       (add-tooltip! cell-widget #(->info-text item))
       nil)))
 
-(defcomponent :tx/remove-item-from-widget
+(defc :tx/remove-item-from-widget
   (do! [[_ cell]]
     (let [{:keys [table slot->background]} (get-inventory)
           cell-widget (get table cell)

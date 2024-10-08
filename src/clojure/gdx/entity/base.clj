@@ -200,11 +200,11 @@
   [uid]
   (get uids-entities uid))
 
-(defcomponent :entity/id
+(defc :entity/id
   (create  [[_ id] _eid] [[:tx/add-to-world      id]])
   (destroy [[_ id] _eid] [[:tx/remove-from-world id]]))
 
-(defcomponent :entity/uid
+(defc :entity/uid
   {:let uid}
   (create [_ entity]
     (assert (number? uid))
@@ -227,7 +227,7 @@
       ; thats why we reuse component and not fetch each time again for key
       (create component eid))))
 
-(defcomponent :e/create
+(defc :e/create
   (do! [[_ position body components]]
     (assert (and (not (contains? components :position))
                  (not (contains? components :entity/id))
@@ -242,34 +242,34 @@
                                       (create-vs)))))
       (create-e-system eid))))
 
-(defcomponent :e/destroy
+(defc :e/destroy
   (do! [[_ entity]]
     [[:e/assoc entity :entity/destroyed? true]]))
 
-(defcomponent :e/assoc
+(defc :e/assoc
   (do! [[_ entity k v]]
     (assert (keyword? k))
     (swap! entity assoc k v)
     nil))
 
-(defcomponent :e/assoc-in
+(defc :e/assoc-in
   (do! [[_ entity ks v]]
     (swap! entity assoc-in ks v)
     nil))
 
-(defcomponent :e/dissoc
+(defc :e/dissoc
   (do! [[_ entity k]]
     (assert (keyword? k))
     (swap! entity dissoc k)
     nil))
 
-(defcomponent :e/dissoc-in
+(defc :e/dissoc-in
   (do! [[_ entity ks]]
     (assert (> (count ks) 1))
     (swap! entity update-in (drop-last ks) dissoc (last ks))
     nil))
 
-(defcomponent :e/update-in
+(defc :e/update-in
   (do! [[_ entity ks f]]
     (swap! entity update-in ks f)
     nil))

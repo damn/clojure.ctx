@@ -1,6 +1,6 @@
 (in-ns 'clojure.gdx)
 
-(defcomponent :entity/delete-after-duration
+(defc :entity/delete-after-duration
   {:let counter}
   (->mk [[_ duration]]
     (->counter duration))

@@ -5,7 +5,7 @@
             core.creature))
 
 (defn- defmodifier [k operations]
-  (defcomponent* k {:data [:map-optional operations]}))
+  (defc* k {:data [:map-optional operations]}))
 
 (defn- stat-k->modifier-k [k]
   (keyword "modifier" (name k)))
@@ -17,12 +17,12 @@
   (keyword "stats" (name effect-k)))
 
 (defn defstat [k {:keys [modifier-ops effect-ops] :as attr-m}]
-  (defcomponent* k attr-m)
+  (defc* k attr-m)
   (when modifier-ops
     (defmodifier (stat-k->modifier-k k) modifier-ops))
   (when effect-ops
     (let [effect-k (stat-k->effect-k k)]
-      (defcomponent* effect-k {:data [:map-optional effect-ops]})
+      (defc* effect-k {:data [:map-optional effect-ops]})
       (derive effect-k :base/stat-effect))))
 
 ; TODO needs to be there for each npc - make non-removable (added to all creatures)
@@ -59,7 +59,7 @@
 ; TODO show the stat in different color red/green if it was permanently modified ?
 ; or an icon even on the creature
 ; also we want audiovisuals always ...
-(defcomponent :effect.entity/movement-speed
+(defc :effect.entity/movement-speed
   {:data [:map [:op/mult]]})
 (derive :effect.entity/movement-speed :base/stat-effect)
 
@@ -138,7 +138,7 @@
 
 ; TODO mana optional? / armor-save / armor-pierce (anyway wrong here)
 ; cast/attack-speed optional ?
-(defcomponent :entity/stats
+(defc :entity/stats
   {:data [:map [:stats/hp
                 :stats/movement-speed
                 :stats/aggro-range
@@ -291,14 +291,14 @@ Default method returns true."
              target-position  (:effect/target-position  ~ctx)]
      ~@body))
 
-(defcomponent :tx/effect
+(defc :tx/effect
   (do! [[_ effect-ctx effect]]
     (with-effect-ctx effect-ctx
       (effect! (filter-applicable? effect)))))
 
 ; is called :base/stat-effect so it doesn't show up in (:data [:components-ns :effect.entity]) list in editor
 ; for :skill/effects
-(defcomponent :base/stat-effect
+(defc :base/stat-effect
   (info-text [[k operations]]
     (str/join "\n"
               (for [operation operations]
@@ -329,7 +329,7 @@ Default method returns true."
 (defn- damage-effect []
   [:effect.entity/damage (entity*->melee-damage @source)])
 
-(defcomponent :effect.entity/melee-damage
+(defc :effect.entity/melee-damage
   {:data :some}
   (info-text [_]
     (str "Damage based on entity strength."
@@ -384,9 +384,9 @@ Default method returns true."
 (defn- damage->text [{[min-dmg max-dmg] :damage/min-max}]
   (str min-dmg "-" max-dmg " damage"))
 
-(defcomponent :damage/min-max {:data :val-max})
+(defc :damage/min-max {:data :val-max})
 
-(defcomponent :effect.entity/damage
+(defc :effect.entity/damage
   {:let damage
    :data [:map [:damage/min-max]]}
   (info-text [_]
@@ -428,7 +428,7 @@ Default method returns true."
 
 (let [modifiers {:modifier/movement-speed {:op/mult -0.5}}
       duration 5]
-  (defcomponent :effect.entity/spiderweb
+  (defc :effect.entity/spiderweb
     {:data :some}
     (info-text [_]
       "Spiderweb slows 50% for 5 seconds."
@@ -446,7 +446,7 @@ Default method returns true."
         [[:tx/apply-modifiers target modifiers]
          [:e/assoc target :entity/temp-modifier {:modifiers modifiers
                                                  :counter (->counter duration)}]]))))
-(defcomponent :effect.entity/convert
+(defc :effect.entity/convert
   {:data :some}
   (info-text [_]
     "Converts target to your side.")
@@ -473,7 +473,7 @@ Default method returns true."
 ; not try-spawn, but check valid-params & then spawn !
 ; new UI -> show creature body & then place
 ; >> but what if it is blocked the area during action-time ?? <<
-(defcomponent :effect/spawn
+(defc :effect/spawn
   {:data [:one-to-one :properties/creatures]
    :let {:keys [property/id]}}
   (applicable? [_]
@@ -487,7 +487,7 @@ Default method returns true."
                     :components {:entity/state [:state/npc :npc-idle]
                                  :entity/faction (:entity/faction @source)}}]]))
 
-(defcomponent :effect.entity/stun
+(defc :effect.entity/stun
   {:data :pos
    :let duration}
   (info-text [_]
@@ -500,7 +500,7 @@ Default method returns true."
   (do! [_]
     [[:tx/event target :stun duration]]))
 
-(defcomponent :effect.entity/kill
+(defc :effect.entity/kill
   {:data :some}
   (info-text [_]
     "Kills target")
@@ -521,7 +521,7 @@ Default method returns true."
 ; as it is just sent .....
 ; or we adjust the effect when we send it ....
 
-(defcomponent :effect/projectile
+(defc :effect/projectile
   {:data [:one-to-one :properties/projectiles]
    :let {:keys [entity-effects projectile/max-range] :as projectile}}
   ; TODO for npcs need target -- anyway only with direction
@@ -564,7 +564,7 @@ Default method returns true."
    )
  )
 
-(defcomponent :entity-effects {:data [:components-ns :effect.entity]})
+(defc :entity-effects {:data [:components-ns :effect.entity]})
 
 ; TODO applicable targets? e.g. projectiles/effect s/???item entiteis ??? check
 ; same code as in render entities on world view screens/world
@@ -587,7 +587,7 @@ Default method returns true."
 
  )
 
-(defcomponent :effect/target-all
+(defc :effect/target-all
   {:data [:map [:entity-effects]]
    :let {:keys [entity-effects]}}
   (info-text [_]
@@ -643,11 +643,11 @@ Default method returns true."
          (v-scale (direction entity* target*)
                   maxrange)))
 
-(defcomponent :maxrange {:data :pos}
+(defc :maxrange {:data :pos}
   (info-text [[_ maxrange]]
     (str "[LIGHT_GRAY]Range " maxrange " meters[]")))
 
-(defcomponent :effect/target-entity
+(defc :effect/target-entity
   {:let {:keys [maxrange entity-effects]}
    :data [:map [:entity-effects :maxrange]]
    :editor/doc "Applies entity-effects to a target if they are inside max-range & in line of sight.
@@ -741,7 +741,7 @@ Default method returns true."
      (or (entity-stat entity* (:skill/action-time-modifier-key skill))
          1)))
 
-(defcomponent :active-skill
+(defc :active-skill
   {:let {:keys [eid skill effect-ctx counter]}}
   (->mk [[_ eid [skill effect-ctx]]]
     {:eid eid
@@ -799,7 +799,7 @@ Default method returns true."
    (npc-choose-skill effect-ctx entity*))
  )
 
-(defcomponent :npc-idle
+(defc :npc-idle
   {:let {:keys [eid]}}
   (->mk [[_ eid]]
     {:eid eid})
@@ -915,7 +915,7 @@ Default method returns true."
        [:cursors/no-skill-selected
         (fn [] (denied "No selected skill"))]))))
 
-(defcomponent :player-idle
+(defc :player-idle
   {:let {:keys [eid]}}
   (->mk [[_ eid]]
     {:eid eid})

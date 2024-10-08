@@ -75,7 +75,7 @@
                       :context/screens
                       :context/vis-ui]])
 
-(def-type :properties/app
+(def-property-type :properties/app
   {:schema [:app/lwjgl3
             :app/context]
    :overview {:title "Apps"

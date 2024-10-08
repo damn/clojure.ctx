@@ -48,49 +48,49 @@
 
 ;;;; Component Data Schemas
 
-(defcomponent :some    {:schema :some})
-(defcomponent :boolean {:schema :boolean})
-(defcomponent :string  {:schema :string})
-(defcomponent :number  {:schema number?})
-(defcomponent :nat-int {:schema nat-int?})
-(defcomponent :int     {:schema int?})
-(defcomponent :pos     {:schema pos?})
-(defcomponent :pos-int {:schema pos-int?})
-(defcomponent :sound   {:schema :string})
-(defcomponent :val-max {:schema (m/form val-max-schema)})
-(defcomponent :image   {:schema [:map {:closed true}
-                                 [:file :string]
-                                 [:sub-image-bounds {:optional true} [:vector {:size 4} nat-int?]]]})
-(defcomponent :data/animation {:schema [:map {:closed true}
-                                        [:frames :some]
-                                        [:frame-duration pos?]
-                                        [:looping? :boolean]]})
+(defc :some    {:schema :some})
+(defc :boolean {:schema :boolean})
+(defc :string  {:schema :string})
+(defc :number  {:schema number?})
+(defc :nat-int {:schema nat-int?})
+(defc :int     {:schema int?})
+(defc :pos     {:schema pos?})
+(defc :pos-int {:schema pos-int?})
+(defc :sound   {:schema :string})
+(defc :val-max {:schema (m/form val-max-schema)})
+(defc :image   {:schema [:map {:closed true}
+                         [:file :string]
+                         [:sub-image-bounds {:optional true} [:vector {:size 4} nat-int?]]]})
+(defc :data/animation {:schema [:map {:closed true}
+                                [:frames :some]
+                                [:frame-duration pos?]
+                                [:looping? :boolean]]})
 
-(defcomponent :enum
+(defc :enum
   (->value [[_ items]]
     {:schema (apply vector :enum items)}))
 
-(defcomponent :qualified-keyword
+(defc :qualified-keyword
   (->value [schema]
     {:schema schema}))
 
-(defcomponent :map
+(defc :map
   (->value [[_ ks]]
     {:schema (map-schema ks)}))
 
-(defcomponent :map-optional
+(defc :map-optional
   (->value [[_ ks]]
     {:schema (map-schema (map (fn [k] [k {:optional true}]) ks))}))
 
-(defcomponent :components-ns
+(defc :components-ns
   (->value [[_ ns-name-k]]
     (->value [:map-optional (namespaced-ks ns-name-k)])))
 
-(defcomponent :one-to-many
+(defc :one-to-many
   (->value [[_ property-type]]
     {:schema [:set [:qualified-keyword {:namespace (property-type->id-namespace property-type)}]]}))
 
-(defcomponent :one-to-one
+(defc :one-to-one
   (->value [[_ property-type]]
     {:schema [:qualified-keyword {:namespace (property-type->id-namespace property-type)}]}))
 
@@ -134,7 +134,7 @@
                       {:property property
                        :schema (m/form schema)})))))
 
-(defcomponent :property/id {:data [:qualified-keyword]})
+(defc :property/id {:data [:qualified-keyword]})
 
 (declare ^:private properties-db
          ^:private properties-edn-file)
@@ -183,6 +183,7 @@
    :file
    :sub-image-bounds})
 
+; reduce-kv?
 (defn- apply-kvs
   "Calls for every key in map (f k v) to calculate new value at k."
   [m f]

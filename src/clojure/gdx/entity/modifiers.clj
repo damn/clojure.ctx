@@ -18,11 +18,11 @@
     {:post [(= (count %) (dec (count values)))]}
     (remove-one values value)))
 
-(defcomponent :tx/apply-modifiers
+(defc :tx/apply-modifiers
   (do! [[_ entity modifiers]]
     (txs-update-modifiers entity modifiers conj-value)))
 
-(defcomponent :tx/reverse-modifiers
+(defc :tx/reverse-modifiers
   (do! [[_ entity modifiers]]
     (txs-update-modifiers entity modifiers remove-value)))
 
@@ -68,7 +68,7 @@
                    (str (op-info-text operation) " " (k->pretty-name modifier-k))))
        "[]"))
 
-(defcomponent :entity/modifiers
+(defc :entity/modifiers
   {:data [:components-ns :modifier]
    :let modifiers}
   (->mk [_]

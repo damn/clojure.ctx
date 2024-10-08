@@ -1,6 +1,6 @@
 (in-ns 'clojure.gdx)
 
-(defcomponent :entity/line-render
+(defc :entity/line-render
   {:let {:keys [thick? end color]}}
   (render [_ entity*]
     (let [position (:position entity*)]
@@ -8,7 +8,7 @@
         (with-shape-line-width 4 #(draw-line position end color))
         (draw-line position end color)))))
 
-(defcomponent :tx/line-render
+(defc :tx/line-render
   (do! [[_ {:keys [start end duration color thick?]}]]
     [[:e/create
       start

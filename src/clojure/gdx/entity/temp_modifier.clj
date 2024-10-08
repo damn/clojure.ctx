@@ -1,6 +1,6 @@
 (in-ns 'clojure.gdx)
 
-(defcomponent :entity/temp-modifier
+(defc :entity/temp-modifier
   {:let {:keys [counter modifiers]}}
   (info-text [_]
     (str "[LIGHT_GRAY]Spiderweb - remaining: " (readable-number (finished-ratio counter)) "/1[]"))

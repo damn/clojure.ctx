@@ -1,6 +1,6 @@
 (in-ns 'clojure.gdx)
 
-(defcomponent :entity/image
+(defc :entity/image
   {:data :image
    :let image}
   (render [_ entity*]

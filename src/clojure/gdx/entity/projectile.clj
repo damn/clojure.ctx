@@ -1,6 +1,6 @@
 (in-ns 'clojure.gdx)
 
-(def-type :properties/projectiles
+(def-property-type :properties/projectiles
   {:schema [:entity/image
             :projectile/max-range
             :projectile/speed
@@ -10,7 +10,7 @@
               :columns 16
               :image/scale 2}})
 
-(defcomponent :entity/projectile-collision
+(defc :entity/projectile-collision
   {:let {:keys [entity-effects already-hit-bodies piercing?]}}
   (->mk [[_ v]]
     (assoc v :already-hit-bodies #{}))
@@ -43,17 +43,17 @@
 
 ; -> range needs to be smaller than potential field range (otherwise hitting someone who can't get back at you)
 ; -> first range check then ray ! otherwise somewhere in contentfield out of sight
-(defcomponent :projectile/max-range {:data :pos-int})
-(defcomponent :projectile/speed     {:data :pos-int})
+(defc :projectile/max-range {:data :pos-int})
+(defc :projectile/speed     {:data :pos-int})
 
-(defcomponent :projectile/piercing? {:data :boolean}
+(defc :projectile/piercing? {:data :boolean}
   (info-text [_] "[LIME]Piercing[]"))
 
 (defn projectile-size [projectile]
   {:pre [(:entity/image projectile)]}
   (first (:world-unit-dimensions (:entity/image projectile))))
 
-(defcomponent :tx/projectile
+(defc :tx/projectile
   (do! [[_
          {:keys [position direction faction]}
          {:keys [entity/image

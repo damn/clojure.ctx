@@ -45,13 +45,13 @@
             :fill-parent? true
             :cell-defaults {:pad-bottom 10}}))
 
-(defcomponent :options/sub-screen
+(defc :options/sub-screen
   (screen-render [_]
     (when (key-just-pressed? :keys/escape)
       (change-screen :screens/world))))
 
 (derive :screens/options-menu :screens/stage)
-(defcomponent :screens/options-menu
+(defc :screens/options-menu
   (->mk [_]
     {:stage (->stage [(->background-image)
                       (create-table)])

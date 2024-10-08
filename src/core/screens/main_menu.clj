@@ -18,7 +18,7 @@
                :fill-parent? true}))
 
 
-(defcomponent :main/sub-screen
+(defc :main/sub-screen
   (screen-enter [_]
     (set-cursor! :cursors/default)))
 
@@ -30,7 +30,7 @@
                       (exit-app!)))})])
 
 (derive :screens/main-menu :screens/stage)
-(defcomponent :screens/main-menu
+(defc :screens/main-menu
   (->mk [[k _]]
     {:sub-screen [:main/sub-screen]
      :stage (->stage (->actors))}))

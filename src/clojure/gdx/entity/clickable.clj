@@ -1,6 +1,6 @@
 (in-ns 'clojure.gdx)
 
-(defcomponent :entity/clickable
+(defc :entity/clickable
   (render [[_ {:keys [text]}]
            {:keys [entity/mouseover?] :as entity*}]
     (when (and mouseover? text)

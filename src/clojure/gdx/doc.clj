@@ -17,7 +17,7 @@
 (defn- vimstuff []
   (spit "vimstuff"
         (apply str
-               (remove #{"defcomponent" "defsystem"}
+               (remove #{"defc" "defsystem"}
                        (interpose " , " (map str (keys (->> (ns-publics *ns*)
                                                             (remove anony-class?)))))))))
 
@@ -60,13 +60,13 @@
 ; also highlight them ....
 ; only for categorization not necessary
 (defn ->gdx-public-names-vimrc
-  "Without macros `defcomponent` and `defsystem`."
+  "Without macros `defc` and `defsystem`."
   [file]
   (spit file
         (->clojurefuncs
          (apply str
-                (remove #{"defcomponent" "defsystem"}
-                        (interpose " , " (map str (keys (->> (ns-publics 'clojure.gdx)
+                (remove #{"defc" "defsystem"}
+                        (interpose " , " (map str (keys (->> (ns-interns 'clojure.gdx)
                                                              (remove anony-class?))))))))))
 
 (when (= "true" (System/getenv "ADD_METADOC"))

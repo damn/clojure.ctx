@@ -21,7 +21,7 @@
   ;(set! Tooltip/MOUSE_MOVED_FADEOUT true)
   )
 
-(defcomponent :context/vis-ui
+(defc :context/vis-ui
   {:data [:enum [:skin-scale/x1 :skin-scale/x2]]
    :let skin-scale}
   (->mk [_]
@@ -462,7 +462,7 @@
   (.hit s x y (boolean touchable?)))
 
 ; TODO not disposed anymore... screens are sub-level.... look for dispose stuff also in @ cdq! FIXME
-(defcomponent :screens/stage
+(defc :screens/stage
   {:let {:keys [stage sub-screen]}}
   (screen-enter [_]
     (set-input-processor! stage)
@@ -551,7 +551,7 @@
                                            (* (gui-viewport-height) (/ 3 4))]
                          :pack? true})))
 
-(defcomponent :tx/player-modal
+(defc :tx/player-modal
   (do! [[_ params]]
     (show-player-modal! params)
     nil))

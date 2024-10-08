@@ -340,7 +340,7 @@
      :content (->overview-table property-type open-property-editor-window!)}))
 
 (derive :screens/property-editor :screens/stage)
-(defcomponent :screens/property-editor
+(defc :screens/property-editor
   (->mk [_]
     {:stage (->stage [(->background-image)
                       (->tabbed-pane (->tabs-data))

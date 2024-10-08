@@ -5,7 +5,7 @@
 (def ^:private friendly-color [0 1 0 outline-alpha])
 (def ^:private neutral-color  [1 1 1 outline-alpha])
 
-(defcomponent :entity/mouseover?
+(defc :entity/mouseover?
   (render-below [_ {:keys [entity/faction] :as entity*}]
     (let [player-entity* @player-entity]
       (with-shape-line-width 3

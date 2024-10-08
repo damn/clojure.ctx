@@ -143,7 +143,7 @@ direction keys: move")
                                                        (println t))))]]
              :pack? true}))
 
-(defcomponent ::sub-screen
+(defc ::sub-screen
   {:let current-data}
   ; TODO ?
   #_(dispose [_]
@@ -167,7 +167,7 @@ direction keys: move")
       (change-screen :screens/main-menu))))
 
 (derive :screens/map-editor :screens/stage)
-(defcomponent :screens/map-editor
+(defc :screens/map-editor
   (->mk [_]
     {:sub-screen [::sub-screen
                   (atom {:tiled-map (t/load-map modules-file)

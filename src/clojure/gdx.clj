@@ -1,14 +1,17 @@
 (ns clojure.gdx
   {:metadoc/categories {:app "🖥️ Application"
+                        :app.graphics "🎨 Graphics"
+                        :app.graphics.camera "🎥 Camera"
+                        :app.graphics.images "🖼️ Image"
+                        :app.screen "📺 Screens"
+                        :app.view.gui "🖼️ Gui View"
+                        :app.view.world "🗺️ World View"
                         :app.input "🎮 Input"
                         :component "⚙️ Component"
-                        :counter "⏳ Timer"
                         :ctx "📜 Context"
                         :effects "💥 Effects"
                         :entity "👾 Entity"
                         :geometry "📐 Geometry"
-                        :graphics "🎨 Graphics"
-                        :graphics.camera "🎥 Camera"
                         :properties "📦️ Properties"
                         :ui "🎛️ UI"
                         :ui-actor "🕴️ UI Actor"
@@ -16,8 +19,8 @@
                         :ui-table "UI Table"
                         :utils "🔧 Utils"
                         :utils.random "🎲 Random"
-                        :screen "Screens"
-                        :world "🌎 World"}}
+                        :world "🌎 World"
+                        :world.timer "⏳ Timer"}}
   (:require (clojure [set :as set]
                      [string :as str]
                      [edn :as edn]
@@ -50,13 +53,13 @@
   (:load "gdx/math"
          "gdx/utils"
          "gdx/component"
+         "gdx/properties"
 
          "gdx/app/assets"
          "gdx/app/input"
          "gdx/app/graphics"
          "gdx/app/screens"
          "gdx/app/ui"
-         "gdx/app/properties"
          "gdx/app/start"
 
          "gdx/screens/property_editor"

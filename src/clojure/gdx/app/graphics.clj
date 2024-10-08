@@ -464,7 +464,7 @@
 (defn set-cursor! [cursor-key]
   (.setCursor Gdx/graphics (safe-get cursors cursor-key)))
 
-(defcomponent :tx/cursor
+(defc :tx/cursor
   (do! [[_ cursor-key]]
     (set-cursor! cursor-key)
     nil))
@@ -520,7 +520,7 @@
 
   :cursors :some)
 
-(defcomponent :context/graphics
+(defc :context/graphics
   {:data [:map [:cursors
                 :default-font
                 :views]]}

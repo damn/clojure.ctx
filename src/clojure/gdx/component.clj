@@ -27,16 +27,16 @@
   (when (and warn-name-ns-mismatch?
              (namespace k)
              (not= (k->component-ns k) (ns-name *ns*)))
-    (println "WARNING: defcomponent " k " is not matching with namespace name " (ns-name *ns*))))
+    (println "WARNING: defc " k " is not matching with namespace name " (ns-name *ns*))))
 
-(defn defcomponent*
+(defn defc*
   "Defines a component without systems methods, so only to set metadata."
   [k attr-map]
   (when (get component-attributes k)
-    (println "WARNING: Overwriting defcomponent" k "attr-map"))
+    (println "WARNING: Overwriting defc" k "attr-map"))
   (alter-var-root #'component-attributes assoc k attr-map))
 
-(defmacro defcomponent
+(defmacro defc
   "Defines a component with keyword k and optional metadata attribute-map followed by system implementations (via defmethods).
 
 attr-map may contain `:let` binding which is let over the value part of a component `[k value]`.
@@ -45,7 +45,7 @@ Example:
 ```clojure
 (defsystem foo \"foo docstring.\" [_])
 
-(defcomponent :foo/bar
+(defc :foo/bar
   {:let {:keys [a b]}}
   (foo [_]
     (+ a b)))
@@ -62,8 +62,8 @@ Example:
         attr-map (dissoc attr-map :let)]
     `(do
       (when ~attr-map?
-        (defcomponent* ~k ~attr-map))
-      #_(alter-meta! *ns* #(update % :doc str "\n* defcomponent `" ~k "`"))
+        (defc* ~k ~attr-map))
+      #_(alter-meta! *ns* #(update % :doc str "\n* defc `" ~k "`"))
       ~@(for [[sys & fn-body] sys-impls
               :let [sys-var (resolve sys)
                     sys-params (:params (meta sys-var))
@@ -80,7 +80,7 @@ Example:
              (assert (keyword? ~k) (pr-str ~k))
              (alter-var-root #'component-attributes assoc-in [~k :params ~(name (symbol sys-var))] (quote ~fn-params))
              (when (get (methods @~sys-var) ~k)
-               (println "WARNING: Overwriting defcomponent" ~k "on" ~sys-var))
+               (println "WARNING: Overwriting defc" ~k "on" ~sys-var))
              (defmethod ~sys ~k ~(symbol (str (name (symbol sys-var)) "." (name k)))
                [& params#]
                (let [~(if let-bindings let-bindings '_) (get (first params#) 1) ; get because maybe component is just [:foo] without v.
@@ -153,14 +153,14 @@ On any exception we get a stacktrace with all tx's values and names shown."
 (defsystem op-apply "FIXME" [_ base-value])
 (defsystem op-order "FIXME" [_])
 
-(defcomponent :op/inc
+(defc :op/inc
   {:data :number
    :let value}
   (op-value-text [_] (str value))
   (op-apply [_ base-value] (+ base-value value))
   (op-order [_] 0))
 
-(defcomponent :op/mult
+(defc :op/mult
   {:data :number
    :let value}
   (op-value-text [_] (str (int (* 100 value)) "%"))
@@ -178,7 +178,7 @@ On any exception we get a stacktrace with all tx's values and names shown."
  (= (val-max-op-k->parts :op/val-inc) [:val :op/inc])
  )
 
-(defcomponent :op/val-max
+(defc :op/val-max
   (op-value-text [[op-k value]]
     (let [[val-or-max op-k] (val-max-op-k->parts op-k)]
       (str (op-value-text [op-k value]) " " (case val-or-max
@@ -203,16 +203,16 @@ On any exception we get a stacktrace with all tx's values and names shown."
     (let [[_ op-k] (val-max-op-k->parts op-k)]
       (op-order [op-k value]))))
 
-(defcomponent :op/val-inc {:data :int})
+(defc :op/val-inc {:data :int})
 (derive       :op/val-inc :op/val-max)
 
-(defcomponent :op/val-mult {:data :number})
+(defc :op/val-mult {:data :number})
 (derive       :op/val-mult :op/val-max)
 
-(defcomponent :op/max-inc {:data :int})
+(defc :op/max-inc {:data :int})
 (derive       :op/max-inc :op/val-max)
 
-(defcomponent :op/max-mult {:data :number})
+(defc :op/max-mult {:data :number})
 (derive       :op/max-mult :op/val-max)
 
 (comment
@@ -232,10 +232,10 @@ On any exception we get a stacktrace with all tx's values and names shown."
 (defn def-attributes [& attributes-data]
   {:pre [(even? (count attributes-data))]}
   (doseq [[k data] (partition 2 attributes-data)]
-    (defcomponent* k {:data data})))
+    (defc* k {:data data})))
 
-(defn def-type [k {:keys [schema overview]}]
-  (defcomponent k
+(defn def-property-type [k {:keys [schema overview]}]
+  (defc k
     {:data [:map (conj schema :property/id)]
      :overview overview}))
 
