@@ -329,7 +329,7 @@
       (draw-centered-image (:entity/image item) (item-place-position entity*)))))
 
 (defn draw-item-on-cursor []
-  (let [player-e* @player-entity]
+  (let [player-e* @world-player]
     (when (and (= :player-item-on-cursor (entity-state player-e*))
                (not (world-item?)))
       (draw-centered-image (:entity/image (:entity/item-on-cursor player-e*))
@@ -396,13 +396,5 @@
 
 (defc :entity/player?
   (create [_ eid]
-    (bind-root #'player-entity eid)
+    (bind-root #'world-player eid)
     nil))
-
-(defn- p-state-obj []
-  (state-obj @player-entity))
-
-(bind-root #'player-update-state      (fn []      (manual-tick             (p-state-obj))))
-(bind-root #'player-state-pause-game? (fn []      (pause-game?             (p-state-obj))))
-(bind-root #'player-clicked-inventory (fn [cell]  (clicked-inventory-cell  (p-state-obj) cell)))
-(bind-root #'player-clicked-skillmenu (fn [skill] (clicked-skillmenu-skill (p-state-obj) skill)))

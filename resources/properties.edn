@@ -1,44 +1,4 @@
-({:app/context
-  {:context/assets "resources/"
-   :context/graphics
-   {:cursors
-    {:cursors/bag ["bag001" [0 0]],
-     :cursors/black-x ["black_x" [0 0]],
-     :cursors/default ["default" [0 0]],
-     :cursors/denied ["denied" [16 16]],
-     :cursors/hand-before-grab ["hand004" [4 16]],
-     :cursors/hand-before-grab-gray ["hand004_gray" [4 16]],
-     :cursors/hand-grab ["hand003" [4 16]],
-     :cursors/move-window ["move002" [16 16]],
-     :cursors/no-skill-selected ["denied003" [0 0]],
-     :cursors/over-button ["hand002" [0 0]],
-     :cursors/sandclock ["sandclock" [16 16]],
-     :cursors/skill-not-usable ["x007" [0 0]],
-     :cursors/use-skill ["pointer004" [0 0]],
-     :cursors/walking ["walking" [16 16]]},
-    :default-font
-    {:file "fonts/exocet/films.EXL_____.ttf",
-     :quality-scaling 2,
-     :size 16},
-    :views
-    {:gui-view {:world-height 900, :world-width 1440},
-     :world-view
-     {:tile-size 48, :world-height 900, :world-width 1440}}},
-   :context/screens
-   [:screens/main-menu
-    :screens/map-editor
-    :screens/options-menu
-    :screens/property-editor
-    :screens/world],
-   :context/vis-ui :skin-scale/x1},
-  :app/lwjgl3
-  {:fps 60,
-   :full-screen? false,
-   :height 900,
-   :title "Core",
-   :width 1440},
-  :property/id :app/core}
- {:entity/animation
+({:entity/animation
   {:frame-duration 0.1,
    :frames
    ({:file "images/oryx_16bit_scifi_FX_lg_trans.png",

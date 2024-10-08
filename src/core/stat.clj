@@ -2,7 +2,8 @@
   (:require [clojure.gdx :refer :all]
             [clojure.gdx.rand :refer [rand-int-between]]
             [clojure.string :as str]
-            core.creature))
+            core.creature
+            [core.projectile :refer [projectile-size]]))
 
 (defn- defmodifier [k operations]
   (defc* k {:data [:map-optional operations]}))
@@ -426,6 +427,19 @@ Default method returns true."
           [:e/assoc-in target [:entity/stats :stats/hp 0] new-hp-val]
           [:tx/event target (if (zero? new-hp-val) :kill :alert)]])))))
 
+(defc :entity/temp-modifier
+  {:let {:keys [counter modifiers]}}
+  (info-text [_]
+    (str "[LIGHT_GRAY]Spiderweb - remaining: " (readable-number (finished-ratio counter)) "/1[]"))
+
+  (tick [[k _] eid]
+    (when (stopped? counter)
+      [[:e/dissoc eid k]
+       [:tx/reverse-modifiers eid modifiers]]))
+
+  (render-above [_ entity*]
+    (draw-filled-circle (:position entity*) 0.5 [0.5 0.5 0.5 0.4])))
+
 (let [modifiers {:modifier/movement-speed {:op/mult -0.5}}
       duration 5]
   (defc :effect.entity/spiderweb
@@ -571,7 +585,7 @@ Default method returns true."
 (defn- creatures-in-los-of-player []
   (->> (active-entities)
        (filter #(:creature/species @%))
-       (filter #(line-of-sight? @player-entity @%))
+       (filter #(line-of-sight? @world-player @%))
        (remove #(:entity/player? @%))))
 
 ; TODO targets projectiles with -50% hp !!
@@ -829,7 +843,7 @@ Default method returns true."
     (:type (:entity/clickable entity*))))
 
 (defmethod on-clicked :clickable/item [clicked-entity*]
-  (let [player-entity* @player-entity
+  (let [player-entity* @world-player
         item (:entity/item clicked-entity*)
         clicked-entity (:entity/id clicked-entity*)]
     (cond
@@ -867,7 +881,7 @@ Default method returns true."
 (defn- inventory-cell-with-item? [actor]
   (and (parent actor)
        (= "inventory-cell" (actor-name (parent actor)))
-       (get-in (:entity/inventory @player-entity)
+       (get-in (:entity/inventory @world-player)
                (actor-id (parent actor)))))
 
 (defn- mouseover-actor->cursor []

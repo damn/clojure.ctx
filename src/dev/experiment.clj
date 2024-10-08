@@ -1,5 +1,6 @@
 (ns dev.experiment
   (:require [clojure.gdx :refer :all]))
+
 (comment
 
 
@@ -79,8 +80,8 @@
 (defn- post-tx! [tx]
   (post-runnable! (effect! [tx])))
 
-(defn- learn-skill! [skill-id] (post-tx! (fn [] [[:tx/add-skill (:entity/id @player-entity) (build-property skill-id)]])))
-(defn- create-item! [item-id]  (post-tx! (fn [] [[:tx/item       (:position @player-entity) (build-property item-id)]])))
+(defn- learn-skill! [skill-id] (post-tx! (fn [] [[:tx/add-skill (:entity/id @world-player) (build-property skill-id)]])))
+(defn- create-item! [item-id]  (post-tx! (fn [] [[:tx/item       (:position @world-player) (build-property item-id)]])))
 
 (defn- protocol? [value]
   (and (instance? clojure.lang.PersistentArrayMap value)
